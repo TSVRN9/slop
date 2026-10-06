@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import BackIcon from '../components/BackIcon'
 import type { Deck } from '../data/decks'
 
 interface Props {
@@ -43,7 +44,7 @@ export default function DeckEditor({ deck, onCancel, onSave, onDelete }: Props) 
     <main className="page editor">
       <nav className="topbar">
         <button className="icon-btn" onClick={onCancel} aria-label="Cancel">
-          ←
+          <BackIcon />
         </button>
         <h1 className="topbar-title">{deck ? 'Edit deck' : 'New deck'}</h1>
       </nav>

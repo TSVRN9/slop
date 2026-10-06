@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { BUILT_IN_DECKS, type Deck } from './data/decks'
 import { exitGameMode, type MotionStatus } from './lib/device'
@@ -48,6 +48,11 @@ export default function App() {
   useEffect(() => {
     saveCustomDecks(customDecks)
   }, [customDecks])
+
+  // Each screen starts at the top. Layout effect, so it lands before a view transition's snapshot.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [screen])
 
   const goHome = useCallback(() => {
     void exitGameMode()

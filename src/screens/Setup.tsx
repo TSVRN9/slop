@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from 'react'
+import BackIcon from '../components/BackIcon'
 import type { Deck } from '../data/decks'
 import { enterGameMode, requestMotionPermission, type MotionStatus } from '../lib/device'
 import { unlockAudio } from '../lib/sound'
@@ -34,7 +35,7 @@ export default function Setup({ deck, settings, onSettings, onBack, onEdit, onSt
     <main className="page setup" style={{ '--deck': deck.color } as CSSProperties}>
       <nav className="topbar">
         <button className="icon-btn" onClick={onBack} aria-label="Back to decks">
-          ←
+          <BackIcon />
         </button>
         {deck.custom && (
           <button className="text-btn" onClick={onEdit}>
