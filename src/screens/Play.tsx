@@ -18,8 +18,15 @@ interface Props {
 
 const FLASH_MS = 650
 
-/** Longest single word, so the card can size type to fit it on one line. */
-const longest = (text: string) => Math.max(4, ...text.split(/\s+/).map((w) => w.length))
+/**
+ * Type size in cqi that fits the text on the card. The longest word must fit on
+ * one line (condensed caps run about 0.55em per letter across 90cqi), and the
+ * whole text must fit the ruled area, roughly 90 x 35cqi.
+ */
+const fit = (text: string) => {
+  const longest = Math.max(4, ...text.split(/\s+/).map((w) => w.length))
+  return Math.min(24, 160 / longest, Math.sqrt(3000 / (0.55 * text.length)))
+}
 const TIMES_UP_MS = 1600
 
 export default function Play({ deck, duration, tiltAvailable, onQuit, onFinish }: Props) {
@@ -155,7 +162,7 @@ export default function Play({ deck, duration, tiltAvailable, onQuit, onFinish }
         </div>
       ) : (
         <div className={`index-card stage-card ${flash ? `out-${flash}` : ''}`} key={index}>
-          <p className="card-word" style={{ '--len': longest(word) } as CSSProperties}>
+          <p className="card-word" style={{ '--fit': fit(word) } as CSSProperties}>
             {word}
           </p>
         </div>

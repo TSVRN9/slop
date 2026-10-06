@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { BUILT_IN_DECKS, type Deck } from './data/decks'
 import { exitGameMode, type MotionStatus } from './lib/device'
 import { setSoundEnabled } from './lib/sound'
@@ -25,6 +26,15 @@ type Screen =
   | { name: 'play'; deck: Deck; tiltAvailable: boolean }
   | { name: 'results'; deck: Deck; entries: RoundEntry[] }
 
+/** Swap screens inside a view transition where supported, so a deck card morphs between screens. */
+function withTransition(update: () => void) {
+  if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    update()
+    return
+  }
+  document.startViewTransition(() => flushSync(update))
+}
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' })
   const [customDecks, setCustomDecks] = useState<Deck[]>(loadCustomDecks)
@@ -41,7 +51,7 @@ export default function App() {
 
   const goHome = useCallback(() => {
     void exitGameMode()
-    setScreen({ name: 'home' })
+    withTransition(() => setScreen({ name: 'home' }))
   }, [])
 
   const saveDeck = (deck: Deck) => {
@@ -62,7 +72,7 @@ export default function App() {
       return (
         <Home
           decks={[...BUILT_IN_DECKS, ...customDecks]}
-          onPick={(deck) => setScreen({ name: 'setup', deck })}
+          onPick={(deck) => withTransition(() => setScreen({ name: 'setup', deck }))}
           onCreate={() => setScreen({ name: 'edit', deck: null })}
         />
       )

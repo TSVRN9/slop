@@ -1,5 +1,8 @@
-import type { CSSProperties } from 'react'
+import { useEffect, type CSSProperties } from 'react'
 import type { Deck } from '../data/decks'
+
+// Deal the cards onto the table on first load only; later visits morph instead.
+let dealt = false
 
 interface Props {
   decks: Deck[]
@@ -8,6 +11,11 @@ interface Props {
 }
 
 export default function Home({ decks, onPick, onCreate }: Props) {
+  const deal = !dealt
+  useEffect(() => {
+    dealt = true
+  }, [])
+
   return (
     <main className="page home">
       <header className="home-header">
@@ -15,12 +23,14 @@ export default function Home({ decks, onPick, onCreate }: Props) {
         <p className="soft">Hold the phone to your forehead and guess the word from your friends' clues.</p>
       </header>
 
-      <section className="deck-grid" aria-label="Decks">
-        {decks.map((deck) => (
+      <section className={`deck-grid ${deal ? 'deal' : ''}`} aria-label="Decks">
+        {decks.map((deck, i) => (
           <button
             key={deck.id}
             className="index-card deck-card"
-            style={{ '--deck': deck.color } as CSSProperties}
+            style={
+              { '--deck': deck.color, '--i': i, viewTransitionName: `deck-${deck.id}` } as CSSProperties
+            }
             onClick={() => onPick(deck)}
           >
             <span className="deck-emoji" aria-hidden>
@@ -30,7 +40,7 @@ export default function Home({ decks, onPick, onCreate }: Props) {
             <span className="deck-count">{deck.cards.length} cards</span>
           </button>
         ))}
-        <button className="deck-new" onClick={onCreate}>
+        <button className="deck-new" style={{ '--i': decks.length } as CSSProperties} onClick={onCreate}>
           <span aria-hidden>+</span> New deck
         </button>
       </section>

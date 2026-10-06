@@ -266,9 +266,26 @@ button {
 .deck-grid > :nth-child(3n) {
   rotate: -0.4deg;
 }
+.deck-grid > * {
+  transition:
+    rotate 0.15s,
+    translate 0.15s;
+}
 .deck-grid > :active {
   rotate: 0deg;
   translate: 0 2px;
+}
+/* First load: cards are dealt onto the table one after another. */
+.deal > * {
+  animation: deal-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--i) * 40ms);
+}
+@keyframes deal-in {
+  from {
+    translate: 0 -48px;
+    rotate: 7deg;
+    opacity: 0;
+  }
 }
 
 .deck-card {
@@ -642,9 +659,9 @@ button {
   max-width: 100%;
   font-family: var(--display);
   font-weight: 900;
-  /* Condensed caps run about 0.55em per letter; keep the longest word on one line. */
+  /* --fit comes from Play's fit(): the size that keeps this text inside the card. */
   font-size: 14vmin;
-  font-size: clamp(1.75rem, min(24cqi, 160cqi / var(--len, 6)), 11rem);
+  font-size: clamp(1.75rem, calc(var(--fit, 16) * 1cqi), 11rem);
   line-height: 0.95;
   text-align: center;
   text-transform: uppercase;
@@ -750,6 +767,12 @@ button {
   padding-right: calc(14px + var(--safe-r));
   justify-items: end;
   background: linear-gradient(to left, rgb(31 157 85 / 0.55), transparent);
+}
+
+/* Picking a deck: its card lifts into the Setup hero (and back). */
+::view-transition-group(*) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {

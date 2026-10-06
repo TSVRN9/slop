@@ -43,7 +43,7 @@ export default function Setup({ deck, settings, onSettings, onBack, onEdit, onSt
         )}
       </nav>
 
-      <div className="index-card deck-card deck-hero">
+      <div className="index-card deck-card deck-hero" style={{ viewTransitionName: `deck-${deck.id}` }}>
         <span className="deck-emoji" aria-hidden>
           {deck.emoji}
         </span>
