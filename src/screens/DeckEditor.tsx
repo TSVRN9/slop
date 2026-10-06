@@ -74,7 +74,7 @@ export default function DeckEditor({ deck, onCancel, onSave, onDelete }: Props) 
       </fieldset>
 
       <label className="field">
-        <span>Cards — one per line ({cards.length})</span>
+        <span>Cards, one per line ({cards.length})</span>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -83,13 +83,13 @@ export default function DeckEditor({ deck, onCancel, onSave, onDelete }: Props) 
         />
       </label>
 
-      <button className="big-btn" onClick={save} disabled={!valid}>
+      <button className="btn btn-play" onClick={save} disabled={!valid}>
         Save deck
       </button>
-      {!valid && <p className="muted small center">Add a name and at least 2 cards.</p>}
+      {!valid && <p className="soft small">Add a name and at least 2 cards.</p>}
       {deck && (
         <button
-          className="ghost-btn danger"
+          className="btn btn-ghost danger"
           onClick={() => {
             if (confirm(`Delete “${deck.name}”?`)) onDelete(deck.id)
           }}

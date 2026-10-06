@@ -1,21 +1,38 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import type { Deck } from '../data/decks'
 import { useTilt } from '../hooks/useTilt'
 import { useWakeLock } from '../hooks/useWakeLock'
+import { requestMotionPermission, type MotionStatus } from '../lib/device'
 import { play } from '../lib/sound'
 
 interface Props {
-  tiltAvailable: boolean
+  deck: Deck
+  motion: MotionStatus
   onCancel: () => void
-  onGo: () => void
+  onGo: (tiltAvailable: boolean) => void
 }
 
 const HOLD_MS = 700
 const VERTICAL_TOLERANCE = 25
+const SILENT_AFTER_MS = 1200
+
+const PROBLEM: Record<Exclude<MotionStatus, 'granted'> | 'silent', string> = {
+  denied:
+    "Motion access is off for this site. Your browser remembers when you tap Don't Allow, so close it completely, open the game again, and tap Allow.",
+  blocked:
+    'Motion sensors are blocked for this site. Turn them on in site settings (tap the icon next to the address), then try again.',
+  insecure: 'Tilt only works on the secure https:// version of this page.',
+  unsupported: "This browser doesn't support tilt. Chrome or Safari usually does.",
+  silent: "This phone or browser isn't sending tilt data. Chrome or Safari usually works.",
+}
 
 /** "Place on forehead" prompt followed by a 3-2-1 countdown. */
-export default function Ready({ tiltAvailable, onCancel, onGo }: Props) {
+export default function Ready({ deck, motion: initialMotion, onCancel, onGo }: Props) {
+  const [motion, setMotion] = useState(initialMotion)
   const [count, setCount] = useState<number | null>(null)
-  const [noSensor, setNoSensor] = useState(!tiltAvailable)
+  // Bumped by "Try tilt again" so the no-data timer starts over.
+  const [attempt, setAttempt] = useState(0)
+  const [silentAttempt, setSilentAttempt] = useState(-1)
   const verticalSince = useRef<number | null>(null)
   const onGoRef = useRef(onGo)
   useEffect(() => {
@@ -27,7 +44,7 @@ export default function Ready({ tiltAvailable, onCancel, onGo }: Props) {
   const begin = () => setCount((c) => c ?? 3)
 
   const { sensorSeen } = useTilt({
-    enabled: tiltAvailable && count === null,
+    enabled: motion === 'granted' && count === null,
     onPitch: (pitch) => {
       const now = performance.now()
       if (Math.abs(pitch) < VERTICAL_TOLERANCE) {
@@ -40,16 +57,24 @@ export default function Ready({ tiltAvailable, onCancel, onGo }: Props) {
   })
 
   useEffect(() => {
-    if (!tiltAvailable || sensorSeen) return
-    const t = setTimeout(() => setNoSensor(true), 1200)
+    if (motion !== 'granted' || sensorSeen) return
+    const t = setTimeout(() => setSilentAttempt(attempt), SILENT_AFTER_MS)
     return () => clearTimeout(t)
-  }, [tiltAvailable, sensorSeen])
+  }, [motion, sensorSeen, attempt])
+
+  const silent = !sensorSeen && silentAttempt === attempt
+  const problem = motion !== 'granted' ? motion : silent ? 'silent' : null
+  const tiltMode = problem === null
+  const tiltRef = useRef(tiltMode)
+  useEffect(() => {
+    tiltRef.current = tiltMode
+  })
 
   useEffect(() => {
     if (count === null) return
     if (count === 0) {
       play('go')
-      onGoRef.current()
+      onGoRef.current(tiltRef.current)
       return
     }
     play('tick')
@@ -57,10 +82,14 @@ export default function Ready({ tiltAvailable, onCancel, onGo }: Props) {
     return () => clearTimeout(t)
   }, [count])
 
-  const tiltMode = tiltAvailable && !noSensor
+  const retry = async () => {
+    const next = await requestMotionPermission()
+    setAttempt((n) => n + 1)
+    setMotion(next)
+  }
 
   return (
-    <main className="stage ready" onClick={begin}>
+    <main className="stage" style={{ '--deck': deck.color } as CSSProperties} onClick={begin}>
       <button
         className="icon-btn stage-close"
         onClick={(e) => {
@@ -72,26 +101,39 @@ export default function Ready({ tiltAvailable, onCancel, onGo }: Props) {
         ✕
       </button>
       {count === null ? (
-        <div className="ready-prompt">
-          <div className="forehead" aria-hidden>
-            📱
-          </div>
-          <h1>{tiltMode ? 'Place on forehead' : 'Tap to start'}</h1>
+        <div className="index-card stage-card ready-card">
+          <h1 className="card-title">{tiltMode ? 'Place on forehead' : 'Tap to start'}</h1>
           {tiltMode ? (
-            <p>Hold the phone sideways, screen facing out. We’ll start when it’s steady — or tap.</p>
+            <p>Screen facing out. Hold still to start, or tap.</p>
           ) : (
-            <p>
-              No motion sensor available, so use taps: <strong>right side = correct</strong>,{' '}
-              <strong>left side = pass</strong>. On a keyboard use ↓ / ↑.
-            </p>
+            <>
+              <p>{PROBLEM[problem]}</p>
+              <p>
+                Until then, tap the right side when you get it and the left side to pass.
+                <span className="keys"> On a keyboard, use ↓ and ↑.</span>
+              </p>
+              <div className="card-actions" onClick={(e) => e.stopPropagation()}>
+                {problem === 'insecure' ? (
+                  <a className="btn btn-small" href={location.href.replace(/^http:/, 'https:')}>
+                    Open secure version
+                  </a>
+                ) : problem !== 'unsupported' ? (
+                  <button className="btn btn-small" onClick={retry}>
+                    Try tilt again
+                  </button>
+                ) : null}
+              </div>
+            </>
           )}
-          <p className="portrait-hint">↻ Turn your phone sideways</p>
         </div>
       ) : (
-        <div className="countdown" key={count}>
-          {count}
+        <div className="index-card stage-card">
+          <span className="countdown" key={count}>
+            {count}
+          </span>
         </div>
       )}
+      <p className="portrait-hint">↻ Turn your phone sideways</p>
     </main>
   )
 }

@@ -17,6 +17,15 @@ export function pitchFromOrientation(beta: number, gamma: number): number {
   return Math.asin(Math.max(-1, Math.min(1, z))) / DEG
 }
 
+/**
+ * Same pitch from DeviceMotion's accelerationIncludingGravity.z, for phones
+ * that report no orientation (no gyroscope). Android sign convention: +g when
+ * the screen faces the ceiling. WebKit flips the sign, so only use it on Android.
+ */
+export function pitchFromGravityZ(z: number): number {
+  return Math.asin(Math.max(-1, Math.min(1, z / 9.81))) / DEG
+}
+
 export interface TiltDetectorOptions {
   /** Degrees past neutral that count as a tilt. */
   triggerAngle?: number

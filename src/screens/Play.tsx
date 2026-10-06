@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { Deck } from '../data/decks'
 import { useTilt } from '../hooks/useTilt'
 import { useWakeLock } from '../hooks/useWakeLock'
+import { clock } from '../lib/clock'
 import { shuffle } from '../lib/shuffle'
 import { play } from '../lib/sound'
 import type { TiltAction } from '../lib/tilt'
@@ -16,6 +17,9 @@ interface Props {
 }
 
 const FLASH_MS = 650
+
+/** Longest single word, so the card can size type to fit it on one line. */
+const longest = (text: string) => Math.max(4, ...text.split(/\s+/).map((w) => w.length))
 const TIMES_UP_MS = 1600
 
 export default function Play({ deck, duration, tiltAvailable, onQuit, onFinish }: Props) {
@@ -112,8 +116,13 @@ export default function Play({ deck, duration, tiltAvailable, onQuit, onFinish }
   if (over) className += ' is-over'
   else if (flash) className += ` is-${flash}`
 
+  const word = cards[index]
   return (
-    <main className={className} onPointerDown={onTap}>
+    <main
+      className={className}
+      style={{ '--deck': deck.color } as CSSProperties}
+      onPointerDown={onTap}
+    >
       <button
         className="icon-btn stage-close"
         onPointerDown={(e) => e.stopPropagation()}
@@ -122,23 +131,38 @@ export default function Play({ deck, duration, tiltAvailable, onQuit, onFinish }
       >
         ✕
       </button>
-      <div className={`timer ${remaining <= 5 ? 'low' : ''}`} aria-label="Time left">
-        {remaining}
+      <div className={`chip-stat timer ${remaining <= 5 ? 'low' : ''}`} aria-label="Time left">
+        {clock(remaining)}
       </div>
-      <div className="score" aria-label="Score">
-        {score}
-      </div>
-
-      <div className="card-word" aria-live="polite">
-        {over ? "Time's up!" : flash === 'correct' ? 'Correct!' : flash === 'pass' ? 'Pass' : cards[index]}
+      <div className="chip-stat score" aria-label="Score">
+        ✓ {score}
       </div>
 
-      {!over && !flash && (
+      {!tiltAvailable && !over && (
         <>
-          <span className="zone-hint left">pass</span>
-          <span className="zone-hint right">correct</span>
+          <span className="tap-zone left" aria-hidden>
+            ✗
+          </span>
+          <span className="tap-zone right" aria-hidden>
+            ✓
+          </span>
         </>
       )}
+
+      {over ? (
+        <div className="index-card stage-card" key="over">
+          <p className="card-word">Time's up</p>
+        </div>
+      ) : (
+        <div className={`index-card stage-card ${flash ? `out-${flash}` : ''}`} key={index}>
+          <p className="card-word" style={{ '--len': longest(word) } as CSSProperties}>
+            {word}
+          </p>
+        </div>
+      )}
+      <p className="verdict" aria-live="polite">
+        {over ? '' : flash === 'correct' ? 'Got it' : flash === 'pass' ? 'Pass' : ''}
+      </p>
     </main>
   )
 }

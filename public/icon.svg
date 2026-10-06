@@ -1,7 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#5b2bd9"/>
-  <rect x="96" y="176" width="320" height="180" rx="28" fill="#fff" transform="rotate(-8 256 266)"/>
-  <text x="256" y="300" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="96" text-anchor="middle" fill="#5b2bd9" transform="rotate(-8 256 266)">?!</text>
-  <path d="M256 70 l40 50 h-80 z" fill="#ffd23f"/>
-  <path d="M256 450 l40 -50 h-80 z" fill="#3ddc84"/>
+  <rect width="512" height="512" rx="112" fill="#1c2340"/>
+  <g transform="rotate(-8 256 256)">
+    <rect x="76" y="146" width="360" height="220" rx="12" fill="#fff"/>
+    <rect x="76" y="196" width="360" height="5" fill="#e5484d"/>
+    <path d="M76 246h360M76 286h360M76 326h360" stroke="#a9cbea" stroke-width="3"/>
+    <text x="256" y="336" font-family="Impact, 'Arial Narrow', sans-serif" font-weight="900" font-size="132" text-anchor="middle" fill="#1c2340">?!</text>
+  </g>
 </svg>

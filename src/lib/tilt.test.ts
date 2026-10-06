@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TiltDetector, pitchFromOrientation } from './tilt'
+import { TiltDetector, pitchFromGravityZ, pitchFromOrientation } from './tilt'
 
 describe('pitchFromOrientation', () => {
   it('is +90 face up, -90 face down, 0 vertical', () => {
@@ -18,6 +18,17 @@ describe('pitchFromOrientation', () => {
     // past vertical toward the floor (iOS reports beta flipped to 180)
     expect(pitchFromOrientation(180, 50)).toBeCloseTo(-40)
     expect(pitchFromOrientation(-180, -50)).toBeCloseTo(-40)
+  })
+})
+
+describe('pitchFromGravityZ', () => {
+  it('matches the orientation pitch convention', () => {
+    expect(pitchFromGravityZ(9.81)).toBeCloseTo(90)
+    expect(pitchFromGravityZ(-9.81)).toBeCloseTo(-90)
+    expect(pitchFromGravityZ(0)).toBeCloseTo(0)
+    expect(pitchFromGravityZ(9.81 * Math.sin((40 * Math.PI) / 180))).toBeCloseTo(40)
+    // noisy readings above 1 g clamp instead of returning NaN
+    expect(pitchFromGravityZ(11)).toBeCloseTo(90)
   })
 })
 

@@ -1,8 +1,9 @@
 import { useState, type CSSProperties } from 'react'
 import type { Deck } from '../data/decks'
-import { enterGameMode, requestMotionPermission } from '../lib/device'
+import { enterGameMode, requestMotionPermission, type MotionStatus } from '../lib/device'
 import { unlockAudio } from '../lib/sound'
 import type { Settings } from '../lib/storage'
+import { clock } from '../lib/clock'
 
 const DURATIONS = [30, 60, 90, 120]
 
@@ -12,7 +13,7 @@ interface Props {
   onSettings: (s: Settings) => void
   onBack: () => void
   onEdit: () => void
-  onStart: (tiltAvailable: boolean) => void
+  onStart: (motion: MotionStatus) => void
 }
 
 export default function Setup({ deck, settings, onSettings, onBack, onEdit, onStart }: Props) {
@@ -23,10 +24,10 @@ export default function Setup({ deck, settings, onSettings, onBack, onEdit, onSt
     setStarting(true)
     // All of this needs to run inside the tap gesture.
     unlockAudio()
-    const permission = await requestMotionPermission()
+    const motion = await requestMotionPermission()
     void enterGameMode()
     setStarting(false)
-    onStart(permission === 'granted')
+    onStart(motion)
   }
 
   return (
@@ -42,13 +43,13 @@ export default function Setup({ deck, settings, onSettings, onBack, onEdit, onSt
         )}
       </nav>
 
-      <div className="setup-hero">
-        <span className="setup-emoji" aria-hidden>
+      <div className="index-card deck-card deck-hero">
+        <span className="deck-emoji" aria-hidden>
           {deck.emoji}
         </span>
-        <h1>{deck.name}</h1>
+        <h1 className="deck-name">{deck.name}</h1>
         <p>{deck.description}</p>
-        <p className="muted">{deck.cards.length} cards</p>
+        <p className="deck-count">{deck.cards.length} cards</p>
       </div>
 
       <fieldset className="chips">
@@ -62,7 +63,7 @@ export default function Setup({ deck, settings, onSettings, onBack, onEdit, onSt
               checked={settings.duration === d}
               onChange={() => onSettings({ ...settings, duration: d })}
             />
-            {d}s
+            {clock(d)}
           </label>
         ))}
       </fieldset>
@@ -76,12 +77,10 @@ export default function Setup({ deck, settings, onSettings, onBack, onEdit, onSt
         <span>Sound effects</span>
       </label>
 
-      <button className="big-btn" onClick={start} disabled={starting}>
+      <button className="btn btn-play" onClick={start} disabled={starting}>
         Play
       </button>
-      <p className="muted small">
-        Tip: rotate your phone sideways and turn off rotation lock for the best view.
-      </p>
+      <p className="soft small">Turn off rotation lock before you start.</p>
     </main>
   )
 }

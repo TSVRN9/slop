@@ -1,23 +1,38 @@
-export type MotionPermission = 'granted' | 'denied' | 'unsupported'
+export type MotionStatus = 'granted' | 'denied' | 'blocked' | 'insecure' | 'unsupported'
 
-type IOSOrientationEvent = typeof DeviceOrientationEvent & {
+type PermissionedOrientationEvent = typeof DeviceOrientationEvent & {
   requestPermission?: () => Promise<'granted' | 'denied'>
 }
 
 /**
- * iOS 13+ requires an explicit permission prompt, triggered from a user
- * gesture, before deviceorientation events are delivered. Elsewhere events
- * just flow (or never arrive on desktops without a sensor).
+ * Must be called from a tap: iOS only shows its prompt inside a user gesture,
+ * so requestPermission() is the first thing here that can suspend.
+ * Chrome also has requestPermission(), but it just reports the "Motion
+ * sensors" site setting, which the permissions query below can tell apart.
  */
-export async function requestMotionPermission(): Promise<MotionPermission> {
+export async function requestMotionPermission(): Promise<MotionStatus> {
   if (typeof window === 'undefined' || !('DeviceOrientationEvent' in window)) return 'unsupported'
-  const DOE = window.DeviceOrientationEvent as IOSOrientationEvent
-  if (typeof DOE.requestPermission !== 'function') return 'granted'
-  try {
-    return (await DOE.requestPermission()) === 'granted' ? 'granted' : 'denied'
-  } catch {
-    return 'denied'
+  if (!window.isSecureContext) return 'insecure'
+  const DOE = window.DeviceOrientationEvent as PermissionedOrientationEvent
+  let prompted: MotionStatus | null = null
+  if (typeof DOE.requestPermission === 'function') {
+    try {
+      prompted = (await DOE.requestPermission()) === 'granted' ? 'granted' : 'denied'
+    } catch {
+      prompted = 'denied'
+    }
+    if (prompted === 'granted') return prompted
   }
+  // Only Chromium knows these names; Safari and Firefox throw.
+  for (const name of ['accelerometer', 'gyroscope']) {
+    try {
+      const status = await navigator.permissions.query({ name: name as PermissionName })
+      if (status.state === 'denied') return 'blocked'
+    } catch {
+      // unknown permission name
+    }
+  }
+  return prompted ?? 'granted'
 }
 
 /** Best effort: fullscreen + landscape lock. Silently ignored where unsupported (iOS). */

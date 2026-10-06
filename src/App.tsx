@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { BUILT_IN_DECKS, type Deck } from './data/decks'
-import { exitGameMode } from './lib/device'
+import { exitGameMode, type MotionStatus } from './lib/device'
 import { setSoundEnabled } from './lib/sound'
 import {
   loadCustomDecks,
@@ -21,7 +21,7 @@ type Screen =
   | { name: 'home' }
   | { name: 'setup'; deck: Deck }
   | { name: 'edit'; deck: Deck | null }
-  | { name: 'ready'; deck: Deck; tiltAvailable: boolean }
+  | { name: 'ready'; deck: Deck; motion: MotionStatus }
   | { name: 'play'; deck: Deck; tiltAvailable: boolean }
   | { name: 'results'; deck: Deck; entries: RoundEntry[] }
 
@@ -83,18 +83,19 @@ export default function App() {
           onSettings={setSettings}
           onBack={goHome}
           onEdit={() => setScreen({ name: 'edit', deck: screen.deck })}
-          onStart={(tiltAvailable) => setScreen({ name: 'ready', deck: screen.deck, tiltAvailable })}
+          onStart={(motion) => setScreen({ name: 'ready', deck: screen.deck, motion })}
         />
       )
     case 'ready':
       return (
         <Ready
-          tiltAvailable={screen.tiltAvailable}
+          deck={screen.deck}
+          motion={screen.motion}
           onCancel={() => {
             void exitGameMode()
             setScreen({ name: 'setup', deck: screen.deck })
           }}
-          onGo={() => setScreen({ ...screen, name: 'play' })}
+          onGo={(tiltAvailable) => setScreen({ name: 'play', deck: screen.deck, tiltAvailable })}
         />
       )
     case 'play':
