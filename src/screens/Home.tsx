@@ -12,7 +12,7 @@ export default function Home({ decks, onPick, onCreate }: Props) {
     <main className="page home">
       <header className="home-header">
         <h1 className="logo">Heads Up!</h1>
-        <p className="soft">Phone on your forehead. Friends give clues. Tilt to play.</p>
+        <p className="soft">Hold the phone to your forehead and guess the word from your friends' clues.</p>
       </header>
 
       <section className="deck-grid" aria-label="Decks">

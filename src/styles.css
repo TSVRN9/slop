@@ -610,6 +610,7 @@ button {
 .countdown {
   font-family: var(--display);
   font-weight: 900;
+  font-size: 30vmin;
   font-size: 48cqi;
   line-height: 1;
   animation: settle 0.3s ease-out;
@@ -642,6 +643,7 @@ button {
   font-family: var(--display);
   font-weight: 900;
   /* Condensed caps run about 0.55em per letter; keep the longest word on one line. */
+  font-size: 14vmin;
   font-size: clamp(1.75rem, min(24cqi, 160cqi / var(--len, 6)), 11rem);
   line-height: 0.95;
   text-align: center;
