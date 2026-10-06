@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { CloseIcon } from '../components/icons'
 import type { Deck } from '../data/decks'
 import { useTilt } from '../hooks/useTilt'
 import { useWakeLock } from '../hooks/useWakeLock'
@@ -102,7 +103,7 @@ export default function Ready({ deck, motion: initialMotion, onCancel, onGo }: P
         }}
         aria-label="Cancel"
       >
-        ✕
+        <CloseIcon />
       </button>
       {count === null ? (
         <div className="index-card stage-card ready-card">

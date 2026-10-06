@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import BackIcon from '../components/BackIcon'
+import { BackIcon } from '../components/icons'
 import type { Deck } from '../data/decks'
 
 interface Props {

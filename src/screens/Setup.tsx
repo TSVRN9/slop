@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from 'react'
-import BackIcon from '../components/BackIcon'
+import { BackIcon } from '../components/icons'
 import type { Deck } from '../data/decks'
 import { enterGameMode, requestMotionPermission, type MotionStatus } from '../lib/device'
 import { unlockAudio } from '../lib/sound'

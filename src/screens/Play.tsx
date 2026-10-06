@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { CloseIcon } from '../components/icons'
 import type { Deck } from '../data/decks'
 import { useTilt } from '../hooks/useTilt'
 import { useWakeLock } from '../hooks/useWakeLock'
@@ -136,7 +137,7 @@ export default function Play({ deck, duration, tiltAvailable, onQuit, onFinish }
         onClick={onQuit}
         aria-label="Quit round"
       >
-        ✕
+        <CloseIcon />
       </button>
       <div className={`chip-stat timer ${remaining <= 5 ? 'low' : ''}`} aria-label="Time left">
         {clock(remaining)}

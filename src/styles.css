@@ -231,8 +231,35 @@ button {
 
 /* ---------- Home ---------- */
 
+.home-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  column-gap: 12px;
+}
+.home-header .logo {
+  justify-self: start;
+}
 .home-header p {
+  grid-column: 1 / -1;
   margin: 10px 0 0;
+}
+.install-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px 0 10px;
+  border: 2px solid var(--edge);
+  border-radius: 999px;
+  background: transparent;
+  font-weight: 700;
+}
+.install-hint {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--field);
+  font-weight: 700;
 }
 .logo {
   display: inline-block;

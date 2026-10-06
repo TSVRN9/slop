@@ -2,8 +2,13 @@
   <rect width="512" height="512" rx="112" fill="#1c2340"/>
   <g transform="rotate(-8 256 256)">
     <rect x="76" y="146" width="360" height="220" rx="12" fill="#fff"/>
-    <rect x="76" y="196" width="360" height="5" fill="#e5484d"/>
-    <path d="M76 246h360M76 286h360M76 326h360" stroke="#a9cbea" stroke-width="3"/>
-    <text x="256" y="336" font-family="Impact, 'Arial Narrow', sans-serif" font-weight="900" font-size="132" text-anchor="middle" fill="#1c2340">?!</text>
+    <rect x="76" y="192" width="360" height="5" fill="#e5484d"/>
+    <path d="M76 240h360M76 282h360M76 324h360" stroke="#a9cbea" stroke-width="3"/>
+    <g fill="none" stroke="#1c2340" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M190 246a34 34 0 1 1 50 30q-16 9-16 26"/>
+      <path d="M296 220v76"/>
+    </g>
+    <circle cx="224" cy="336" r="15" fill="#1c2340"/>
+    <circle cx="296" cy="336" r="15" fill="#1c2340"/>
   </g>
 </svg>

@@ -30,6 +30,20 @@ To try tilt on a phone during development, run `pnpm dev --host` and open the UR
 
 `.github/workflows/pages.yml` builds and deploys on every push to `main`. Turn it on once under **Settings → Pages → Build and deployment → Source: GitHub Actions**. The build uses relative asset paths, so it works under `https://<user>.github.io/<repo>/` without extra configuration.
 
+## Installing (PWA)
+
+The site is an installable app. Chromium browsers (Chrome, Edge, Samsung Internet, Brave) show an **Install** button on the deck list; on iPhone the button explains Share → Add to Home Screen. `public/sw.js` caches the page and its assets on first visit, so the game works offline afterwards; it serves from cache and refreshes in the background, so a deploy shows up on the next launch.
+
+Icons are rendered from the SVGs in `public/`:
+
+```sh
+cd public
+rsvg-convert -w 192 icon.svg -o icon-192.png
+rsvg-convert -w 512 icon.svg -o icon-512.png
+rsvg-convert -w 512 icon-maskable.svg -o icon-maskable-512.png
+rsvg-convert -w 180 icon-maskable.svg -o apple-touch-icon.png
+```
+
 ## How tilt detection works
 
 `src/lib/tilt.ts` turns `deviceorientation` β/γ into the screen's pitch from vertical (`asin(cos β · cos γ)`). This reads the same in either landscape direction and doesn't jump when the phone passes vertical. A small state machine calibrates a neutral baseline, fires at ±35°, and won't fire again until the phone is back within 15° of neutral, so holding a tilt never counts twice.

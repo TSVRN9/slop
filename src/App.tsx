@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { BUILT_IN_DECKS, type Deck } from './data/decks'
 import { exitGameMode, type MotionStatus } from './lib/device'
@@ -49,14 +49,72 @@ export default function App() {
     saveCustomDecks(customDecks)
   }, [customDecks])
 
-  // Each screen starts at the top. Layout effect, so it lands before a view transition's snapshot.
+  // The deck list comes back where you left it; every other screen starts at the top.
+  // Layout effect, so it lands before a view transition's snapshot.
+  const homeScroll = useRef(0)
+  const leaveHome = (next: () => void) => {
+    homeScroll.current = window.scrollY
+    next()
+  }
   useLayoutEffect(() => {
-    window.scrollTo(0, 0)
+    window.scrollTo(0, screen.name === 'home' ? homeScroll.current : 0)
   }, [screen])
 
   const goHome = useCallback(() => {
     void exitGameMode()
     withTransition(() => setScreen({ name: 'home' }))
+  }, [])
+
+  /** What each screen's back or close button does. Android's back gesture does the same. */
+  const back = () => {
+    switch (screen.name) {
+      case 'home':
+        return
+      case 'setup':
+        return goHome()
+      case 'edit':
+        return setScreen(screen.deck ? { name: 'setup', deck: screen.deck } : { name: 'home' })
+      case 'ready':
+      case 'play':
+        void exitGameMode()
+        return setScreen({ name: 'setup', deck: screen.deck })
+      case 'results':
+        return setScreen({ name: 'setup', deck: screen.deck })
+    }
+  }
+  const backRef = useRef(back)
+  useEffect(() => {
+    backRef.current = back
+  })
+
+  // Off the home screen, keep exactly one history entry for the system back gesture to pop.
+  // Popping it runs back(); on the home screen there's none, so back leaves the app.
+  const trapped = useRef(false)
+  const skipPop = useRef(false)
+  useEffect(() => {
+    const atHome = screen.name === 'home'
+    if (!atHome && !trapped.current) {
+      history.pushState(null, '')
+      trapped.current = true
+    } else if (atHome && trapped.current) {
+      // Reached home through the UI: drop the leftover entry without acting on it.
+      trapped.current = false
+      skipPop.current = true
+      history.back()
+    }
+  }, [screen])
+  useEffect(() => {
+    history.scrollRestoration = 'manual'
+    const onPop = () => {
+      if (skipPop.current) {
+        skipPop.current = false
+        return
+      }
+      trapped.current = false
+      backRef.current()
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
   }, [])
 
   const saveDeck = (deck: Deck) => {
@@ -77,15 +135,15 @@ export default function App() {
       return (
         <Home
           decks={[...BUILT_IN_DECKS, ...customDecks]}
-          onPick={(deck) => withTransition(() => setScreen({ name: 'setup', deck }))}
-          onCreate={() => setScreen({ name: 'edit', deck: null })}
+          onPick={(deck) => leaveHome(() => withTransition(() => setScreen({ name: 'setup', deck })))}
+          onCreate={() => leaveHome(() => setScreen({ name: 'edit', deck: null }))}
         />
       )
     case 'edit':
       return (
         <DeckEditor
           deck={screen.deck}
-          onCancel={() => setScreen(screen.deck ? { name: 'setup', deck: screen.deck } : { name: 'home' })}
+          onCancel={back}
           onSave={saveDeck}
           onDelete={deleteDeck}
         />
@@ -96,7 +154,7 @@ export default function App() {
           deck={screen.deck}
           settings={settings}
           onSettings={setSettings}
-          onBack={goHome}
+          onBack={back}
           onEdit={() => setScreen({ name: 'edit', deck: screen.deck })}
           onStart={(motion) => setScreen({ name: 'ready', deck: screen.deck, motion })}
         />
@@ -106,10 +164,7 @@ export default function App() {
         <Ready
           deck={screen.deck}
           motion={screen.motion}
-          onCancel={() => {
-            void exitGameMode()
-            setScreen({ name: 'setup', deck: screen.deck })
-          }}
+          onCancel={back}
           onGo={(tiltAvailable) => setScreen({ name: 'play', deck: screen.deck, tiltAvailable })}
         />
       )
@@ -119,10 +174,7 @@ export default function App() {
           deck={screen.deck}
           duration={settings.duration}
           tiltAvailable={screen.tiltAvailable}
-          onQuit={() => {
-            void exitGameMode()
-            setScreen({ name: 'setup', deck: screen.deck })
-          }}
+          onQuit={back}
           onFinish={(entries) => {
             void exitGameMode()
             setScreen({ name: 'results', deck: screen.deck, entries })
