@@ -10,7 +10,7 @@ A mobile-first, tilt-controlled guessing party game built with React + Vite. Run
 
 No motion sensor? Tap the right half of the screen for correct and the left half to pass, or use ↓ / ↑ on a keyboard.
 
-If tilt doesn't work, the start screen says why: motion access was denied (iOS remembers "Don't Allow" until you fully close the browser), motion sensors are blocked in site settings (Android Chrome), the page was opened over plain http, or the phone isn't sending tilt data.
+If tilt doesn't work, the start screen says why: motion access was denied (iOS remembers "Don't Allow" until you fully close the browser), motion sensors are blocked in site settings (Android Chrome, and Brave on Android by default with no prompt), the page was opened over plain http, or the phone isn't sending tilt data.
 
 > Tilt only works over HTTPS. On GitHub Pages with a custom domain, turn on **Settings → Pages → Enforce HTTPS**, or people who type the bare domain land on http and get no motion events.
 

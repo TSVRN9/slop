@@ -26,6 +26,10 @@ const PROBLEM: Record<Exclude<MotionStatus, 'granted'> | 'silent', string> = {
   silent: "This phone or browser isn't sending tilt data. Chrome or Safari usually works.",
 }
 
+// Brave blocks motion sensors by default and never prompts.
+const BRAVE_BLOCKED =
+  'Brave blocks motion sensors by default. Open Settings, then Site settings, then Motion sensors, allow them, and try again.'
+
 /** "Place on forehead" prompt followed by a 3-2-1 countdown. */
 export default function Ready({ deck, motion: initialMotion, onCancel, onGo }: Props) {
   const [motion, setMotion] = useState(initialMotion)
@@ -107,7 +111,9 @@ export default function Ready({ deck, motion: initialMotion, onCancel, onGo }: P
             <p>Screen facing out. Hold still to start, or tap.</p>
           ) : (
             <>
-              <p>{PROBLEM[problem]}</p>
+              <p>
+                {problem === 'blocked' && 'brave' in navigator ? BRAVE_BLOCKED : PROBLEM[problem]}
+              </p>
               <p>
                 Until then, tap the right side when you get it and the left side to pass.
                 <span className="keys"> On a keyboard, use ↓ and ↑.</span>
